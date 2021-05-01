@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+mask_rcnn_damage_0010.h5
+mask_rcnn_coco.h5
+logs
+__pycache__
+.DS_Store
+customImages/train
+customImages/val
+output/*
+test/*
