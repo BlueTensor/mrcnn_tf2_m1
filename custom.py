@@ -26,7 +26,7 @@ Usage: import the module (see Jupyter notebooks for examples), or run from
     # Apply color splash to video using the last weights you trained
     python3 balloon.py splash --weights=last --video=<URL or path to file>
 """
-
+import ntpath
 import os
 import sys
 import json
@@ -36,6 +36,8 @@ import skimage.draw
 import cv2
 from mrcnn_tf2.visualize import display_instances
 import matplotlib.pyplot as plt
+from os import listdir
+from os.path import isfile, join
 
 
 
@@ -58,6 +60,8 @@ COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
 # Directory to save logs and model checkpoints, if not provided
 # through the command line argument --logs
 DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
+
+OUTPUT_DIR = os.path.join(ROOT_DIR, "output")+"/"
 
 ############################################################
 #  Configurations
@@ -232,15 +236,19 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
     # Image or video?
     if image_path:
         # Run model detection and generate the color splash effect
-        print("Running on {}".format(args.image))
+        print("Running on {}".format(image_path))
         # Read image
-        image = skimage.io.imread(args.image)
+        image = skimage.io.imread(image_path)
         # Detect objects
         r = model.detect([image], verbose=1)[0]
         # Color splash
-        splash = color_splash(image, r['masks'])
+        splash=display_instances(image, r['rois'], r['masks'], r['class_ids'], ['damage','damage'], r['scores'], title="Predictions")
+
+        # splash = color_splash(image, r['masks'])
         # Save output
-        file_name = "splash_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
+   
+
+        file_name = OUTPUT_DIR+ntpath.basename(image_path)+"_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
         skimage.io.imsave(file_name, splash)
     elif video_path:
         import cv2
@@ -275,7 +283,7 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
                 vwriter.write(splash)
                 count += 1
         vwriter.release()
-    print("Saved to ", file_name)
+    print("Saved to ", OUTPUT_DIR+ file_name)
 
 ############################################################
 #  Training
@@ -370,8 +378,15 @@ if __name__ == '__main__':
     if args.command == "train":
         train(model)
     elif args.command == "splash":
-        detect_and_color_splash(model, image_path=args.image,
-                                video_path=args.video)
+        # print(args.image)
+  
+        if os.path.isdir(args.image):  
+            onlyfiles = [f for f in listdir(args.image) if isfile(join(args.image, f))]
+            for _file in onlyfiles:
+                detect_and_color_splash(model, image_path=args.image+"/"+_file,video_path=args.video)  
+        else:  
+            detect_and_color_splash(model, image_path=args.image,video_path=args.video)
+        
     else:
         print("'{}' is not recognized. "
               "Use 'train' or 'splash'".format(args.command))

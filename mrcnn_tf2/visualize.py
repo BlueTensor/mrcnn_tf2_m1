@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 from matplotlib import patches,  lines
 from matplotlib.patches import Polygon
 import IPython.display
+import cv2
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../")
@@ -98,6 +99,7 @@ def display_instances(image, boxes, masks, class_ids, class_names,
     captions: (optional) A list of strings to use as captions for each object
     """
     # Number of instances
+    fig = plt.figure()
     N = boxes.shape[0]
     if not N:
         print("\n*** No instances to display *** \n")
@@ -140,11 +142,11 @@ def display_instances(image, boxes, masks, class_ids, class_names,
             class_id = class_ids[i]
             score = scores[i] if scores is not None else None
             label = class_names[class_id]
+            x = random.randint(x1, (x1 + x2) // 2)
             caption = "{} {:.3f}".format(label, score) if score else label
         else:
             caption = captions[i]
-        ax.text(x1, y1 + 8, caption,
-                color='w', size=11, backgroundcolor="none")
+        ax.text(x1, y1 + 8, caption,color='w', size=11, backgroundcolor="none")
 
         # Mask
         mask = masks[:, :, i]
@@ -161,10 +163,16 @@ def display_instances(image, boxes, masks, class_ids, class_names,
             # Subtract the padding and flip (y, x) to (x, y)
             verts = np.fliplr(verts) - 1
             p = Polygon(verts, facecolor="none", edgecolor=color)
+            #cv2.polylines(masked_image.astype(np.uint8),[verts],True,(0,255,255))
+            # cv.rectangle(img,(384,0),(510,128),(0,255,0),3)
             ax.add_patch(p)
-    ax.imshow(masked_image.astype(np.uint8))
-    if auto_show:
-        plt.show()
+    # ax.imshow(masked_image.astype(np.uint8))
+    # fig.savefig('plot.png')
+    
+    # if auto_show:
+    #     plt.show()
+    
+    return masked_image.astype(np.uint8)
 
 
 def display_differences(image,

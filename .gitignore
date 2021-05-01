@@ -5,3 +5,5 @@ __pycache__
 .DS_Store
 customImages/train
 customImages/val
+output/*
+test/*
